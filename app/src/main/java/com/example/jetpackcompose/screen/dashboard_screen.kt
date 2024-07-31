@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,10 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Scaffold
 import androidx.compose.material.*
@@ -27,47 +23,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.jetpackcompose.R
 import com.example.jetpackcompose.common.AppIconButton
 import com.example.jetpackcompose.common.SpacerHeight
 import com.example.jetpackcompose.common.SpacerWidth
 import com.example.jetpackcompose.data.BottomNavItem
 import com.example.jetpackcompose.data.DrawerItem
-import com.example.jetpackcompose.data.Pizza
 import com.example.jetpackcompose.data.drawerItemList
-import com.example.jetpackcompose.data.pizzaList
 import com.example.jetpackcompose.ui.theme.BackgroundColor
-import com.example.jetpackcompose.ui.theme.DarkBlackColor
-import com.example.jetpackcompose.ui.theme.LightGrayColor
 import com.example.jetpackcompose.ui.theme.RedColor
-import com.example.jetpackcompose.ui.theme.YellowColor
+import com.example.jetpackcompose.utilities.ProfileViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostController) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -88,7 +76,7 @@ fun DashboardScreen() {
                 }
             })
         },
-        drawerContent = { DrawerContent() },
+        drawerContent = { DrawerContent(profileViewModel) },
         bottomBar = {
             BottomNavigation(
                 backgroundColor = Color.White,
@@ -108,9 +96,9 @@ fun DashboardScreen() {
         content = {
             it
             when (selectedIndex) {
-                0 -> HomeScreen()
+                0 -> HomeScreen(navController)
                 1 -> CartScreen()
-                2 -> ProfileScreen()
+                2 -> ProfileScreen(profileViewModel)
             }
         })
 }
@@ -146,7 +134,9 @@ fun CustomTopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DrawerContent() {
+fun DrawerContent(viewModel: ProfileViewModel) {
+    val name by viewModel.name.collectAsState()
+    val email by viewModel.email.collectAsState()
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.padding(10.dp),
@@ -162,7 +152,7 @@ fun DrawerContent() {
             )
             SpacerHeight()
             Text(
-                text = "Aamir Khan",
+                text = name,
                 style = TextStyle(
                     color = Color.Black,
                     fontSize = 20.sp,
@@ -171,7 +161,7 @@ fun DrawerContent() {
             )
             SpacerHeight(2.dp)
             Text(
-                text = "aamirkhan@gmail.com",
+                text = email,
                 style = TextStyle(
                     color = Color.Gray,
                     fontSize = 15.sp,

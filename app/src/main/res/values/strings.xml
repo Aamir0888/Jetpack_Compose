@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Jetpack Compose</string>
+    <string name="long_string">"Starting my career in Human Resources seemed like a mismatch at first given my B.Sc in Computer Science.\n\nI landed on a gold mine when I attended my first Design Thinking workshop and saw the need to combine my knowledge of people and systems with my desire for problem-solving.\n\nI landed on a gold mine when I attended my first Design Thinking workshop and saw the need to combine my knowledge of people and systems with my desire for problem-solving.\n\nI landed on a gold mine when I attended my first Design Thinking workshop and saw the need to combine my knowledge of people and systems with my desire for problem-solving.\n\nI landed on a gold mine when I attended my first Design Thinking workshop and saw the need to combine my knowledge of people and systems with my desire for problem-solving."</string>
 </resources>

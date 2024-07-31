@@ -2,11 +2,11 @@ package com.example.jetpackcompose.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,7 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.jetpackcompose.R
+import androidx.navigation.NavHostController
 import com.example.jetpackcompose.common.SpacerHeight
 import com.example.jetpackcompose.data.Pizza
 import com.example.jetpackcompose.data.pizzaList
@@ -38,23 +38,25 @@ import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.ui.theme.YellowColor
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavHostController) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 5.dp),
         contentPadding = PaddingValues(bottom = 60.dp)
     ) {
         items(pizzaList.size) { index ->
-            PizzaSingleItem(pizza = pizzaList[index])
+            PizzaSingleItem(pizza = pizzaList[index], onClick = {
+                navController.navigate("pizza_details_screen")
+            })
         }
     }
 }
 
 @Composable
-fun PizzaSingleItem(pizza: Pizza) {
+fun PizzaSingleItem(pizza: Pizza, onClick: () -> Unit) {
     val context = LocalContext.current
     Card(
-        modifier = Modifier.padding(5.dp), shape = RoundedCornerShape(15.dp)
+        modifier = Modifier.padding(5.dp).clickable { onClick() }, shape = RoundedCornerShape(15.dp)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -65,7 +67,7 @@ fun PizzaSingleItem(pizza: Pizza) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.pizza),
+                    painter = painterResource(pizza.image),
                     contentDescription = "",
                     modifier = Modifier.size(100.dp)
                 )
