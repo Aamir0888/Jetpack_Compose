@@ -20,6 +20,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Scaffold
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -62,6 +63,7 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
     val items = listOf(
         BottomNavItem("Home", Icons.Default.Home),
         BottomNavItem("Cart", Icons.Default.ShoppingCart),
+        BottomNavItem("Favorite", Icons.Default.Favorite),
         BottomNavItem("Profile", Icons.Default.Person)
     )
 
@@ -98,7 +100,8 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
             when (selectedIndex) {
                 0 -> HomeScreen(navController)
                 1 -> CartScreen()
-                2 -> ProfileScreen(profileViewModel)
+                2 -> FavoriteScreen()
+                3 -> ProfileScreen(profileViewModel)
             }
         })
 }

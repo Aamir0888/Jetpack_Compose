@@ -3,6 +3,11 @@ package com.example.jetpackcompose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,7 +25,20 @@ class MainActivity : ComponentActivity() {
         setContent {
             profileViewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
             val navController = rememberNavController()
-            NavHost(navController = navController, startDestination = "home_screen", builder = {
+            NavHost(navController = navController, startDestination = "pizza_details_screen",
+//                enterTransition = {
+//                    slideInHorizontally(initialOffsetX = { it }) + fadeIn(animationSpec = tween(700))
+//                },
+//                exitTransition = {
+//                    slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(animationSpec = tween(700))
+//                },
+//                popEnterTransition = {
+//                    slideInHorizontally(initialOffsetX = { -it }) + fadeIn(animationSpec = tween(700))
+//                },
+//                popExitTransition = {
+//                    slideOutHorizontally(targetOffsetX = { it }) + fadeOut(animationSpec = tween(700))
+//                },
+                builder = {
                 composable("dashboard_screen"){
                     DashboardScreen(profileViewModel, navController)
                 }

@@ -58,11 +58,11 @@ fun PizzaSingleItem(pizza: Pizza, onClick: () -> Unit) {
     Card(
         modifier = Modifier.padding(5.dp).clickable { onClick() }, shape = RoundedCornerShape(15.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box {
             Column(
                 modifier = Modifier
                     .padding(8.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth(0.5f),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -87,7 +87,7 @@ fun PizzaSingleItem(pizza: Pizza, onClick: () -> Unit) {
                 Text(
                     textAlign = TextAlign.Center, text = pizza.description, style = TextStyle(
                         fontSize = 11.sp, fontWeight = FontWeight.W400, color = LightGrayColor
-                    )
+                    ), maxLines = 2
                 )
                 SpacerHeight()
                 Button(

@@ -45,7 +45,8 @@ import com.example.jetpackcompose.utilities.ProfileViewModel
 fun ProfileScreen(viewModel: ProfileViewModel) {
     val scrollState = rememberScrollState()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             imageUri = uri
         }
 
@@ -180,13 +181,13 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
             onClick = {
                 if (isEditing) {
                     // Save the edited values
-                    if (name != nameInput){
+                    if (name != nameInput) {
                         viewModel.updateName(nameInput)
                     }
-                    if (email != emailInput){
+                    if (email != emailInput) {
                         viewModel.updateEmail(emailInput)
                     }
-                    if (bio != bioInput){
+                    if (bio != bioInput) {
                         viewModel.updateBio(bioInput)
                     }
                 }
