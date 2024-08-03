@@ -53,10 +53,11 @@ import com.example.jetpackcompose.data.drawerItemList
 import com.example.jetpackcompose.ui.theme.BackgroundColor
 import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.utilities.ProfileViewModel
+import com.example.jetpackcompose.utilities.SharedViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostController) {
+fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostController, sharedViewModel: SharedViewModel) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -98,7 +99,7 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
         content = {
             it
             when (selectedIndex) {
-                0 -> HomeScreen(navController)
+                0 -> HomeScreen(navController, sharedViewModel)
                 1 -> CartScreen()
                 2 -> FavoriteScreen()
                 3 -> ProfileScreen(profileViewModel)

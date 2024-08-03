@@ -1,8 +1,8 @@
 package com.example.jetpackcompose.screen
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,19 +42,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.jetpackcompose.R
 import com.example.jetpackcompose.common.SpacerHeight
 import com.example.jetpackcompose.common.SpacerWidth
 import com.example.jetpackcompose.data.pizzaList
 import com.example.jetpackcompose.ui.theme.RedColor
+import com.example.jetpackcompose.utilities.NavigationRoute
+import com.example.jetpackcompose.utilities.SharedViewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun PizzaDetailsScreen() {
+fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostController) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    var item by remember { mutableIntStateOf(1) }
 
     Column(
         modifier = Modifier
@@ -71,10 +76,10 @@ fun PizzaDetailsScreen() {
         )
         {
             SpacerHeight(14.dp)
-            ImageSlideWithIndicator(imageList = pizzaList[0].otherIcons)
+            ImageSlideWithIndicator(imageList = sharedViewModel.pizza!!.otherIcons)
             SpacerHeight(18.dp)
             Text(
-                text = "Product name will be here",
+                text = sharedViewModel.pizza!!.name,
                 style = TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.W600,
@@ -87,7 +92,7 @@ fun PizzaDetailsScreen() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "$100",
+                    text = sharedViewModel.pizza!!.price,
                     style = TextStyle(
                         fontSize = 22.sp,
                         fontWeight = FontWeight.W600,
@@ -98,22 +103,22 @@ fun PizzaDetailsScreen() {
                     Image(
                         painter = painterResource(id = R.drawable.minus),
                         contentDescription = null,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.dp).clickable { if (item>1) item-- }
                     )
-                    SpacerWidth()
                     Text(
-                        text = "1",
+                        text = item.toString(),
                         style = TextStyle(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.W600,
-                            color = Color.Black
-                        )
+                            color = Color.Black,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.width(40.dp)
                     )
-                    SpacerWidth()
                     Image(
                         painter = painterResource(id = R.drawable.add),
                         contentDescription = null,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.dp).clickable { item++ }
                     )
                 }
             }
@@ -139,8 +144,7 @@ fun PizzaDetailsScreen() {
             }
             SpacerHeight(10.dp)
             Text(
-//                text = stringResource(id = R.string.long_string),
-                text = "Description will be here",
+                text = sharedViewModel.pizza!!.description,
                 style = TextStyle(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.W400,
@@ -160,7 +164,8 @@ fun PizzaDetailsScreen() {
             LazyRow {
                 items(pizzaList) { item ->
                     PizzaSingleItem(pizza = item, onClick = {
-                        Toast.makeText(context, "item clicked", Toast.LENGTH_SHORT).show()
+                        sharedViewModel.addPizza(item)
+                        navController.navigate(NavigationRoute.PIZZA_DETAILS_SCREEN)
                     })
                 }
             }

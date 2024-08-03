@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -36,9 +38,11 @@ import com.example.jetpackcompose.ui.theme.DarkBlackColor
 import com.example.jetpackcompose.ui.theme.LightGrayColor
 import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.ui.theme.YellowColor
+import com.example.jetpackcompose.utilities.NavigationRoute
+import com.example.jetpackcompose.utilities.SharedViewModel
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewModel) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.padding(horizontal = 5.dp),
@@ -46,7 +50,8 @@ fun HomeScreen(navController: NavHostController) {
     ) {
         items(pizzaList.size) { index ->
             PizzaSingleItem(pizza = pizzaList[index], onClick = {
-                navController.navigate("pizza_details_screen")
+                sharedViewModel.addPizza(pizzaList[index])
+                navController.navigate(NavigationRoute.PIZZA_DETAILS_SCREEN)
             })
         }
     }
@@ -56,13 +61,13 @@ fun HomeScreen(navController: NavHostController) {
 fun PizzaSingleItem(pizza: Pizza, onClick: () -> Unit) {
     val context = LocalContext.current
     Card(
-        modifier = Modifier.padding(5.dp).clickable { onClick() }, shape = RoundedCornerShape(15.dp)
+        modifier = Modifier.width(180.dp).padding(5.dp).clickable { onClick() }, shape = RoundedCornerShape(15.dp)
     ) {
         Box {
             Column(
                 modifier = Modifier
                     .padding(8.dp)
-                    .fillMaxWidth(0.5f),
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -87,7 +92,8 @@ fun PizzaSingleItem(pizza: Pizza, onClick: () -> Unit) {
                 Text(
                     textAlign = TextAlign.Center, text = pizza.description, style = TextStyle(
                         fontSize = 11.sp, fontWeight = FontWeight.W400, color = LightGrayColor
-                    ), maxLines = 2
+                    ), maxLines = 2, minLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 SpacerHeight()
                 Button(
