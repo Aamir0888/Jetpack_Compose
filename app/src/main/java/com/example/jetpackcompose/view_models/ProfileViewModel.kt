@@ -1,7 +1,8 @@
-package com.example.jetpackcompose.utilities
+package com.example.jetpackcompose.view_models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.jetpackcompose.utilities.PreferencesHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -13,7 +14,8 @@ class ProfileViewModel: ViewModel() {
     private val _email = MutableStateFlow(PreferencesHelper.getString(PreferencesHelper.EMAIL) ?: "Your email")
     val email: StateFlow<String> get() = _email
 
-    private val _bio = MutableStateFlow(PreferencesHelper.getString(PreferencesHelper.DESCRIPTION) ?: "Your description or bio")
+    private val _bio = MutableStateFlow(
+        PreferencesHelper.getString(PreferencesHelper.DESCRIPTION) ?: "Your description or bio")
     val bio: StateFlow<String> get() = _bio
 
     fun updateName(newName: String) {

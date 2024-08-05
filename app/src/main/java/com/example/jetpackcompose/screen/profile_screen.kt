@@ -39,7 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextStyle
 import coil.compose.rememberAsyncImagePainter
 import com.example.jetpackcompose.ui.theme.RedColor
-import com.example.jetpackcompose.utilities.ProfileViewModel
+import com.example.jetpackcompose.view_models.ProfileViewModel
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel) {

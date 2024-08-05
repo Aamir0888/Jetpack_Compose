@@ -1,5 +1,6 @@
 package com.example.jetpackcompose.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -27,11 +29,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,21 +47,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.jetpackcompose.R
 import com.example.jetpackcompose.common.SpacerHeight
-import com.example.jetpackcompose.common.SpacerWidth
 import com.example.jetpackcompose.data.pizzaList
+import com.example.jetpackcompose.view_models.PizzaViewModel
 import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.utilities.NavigationRoute
-import com.example.jetpackcompose.utilities.SharedViewModel
+import com.example.jetpackcompose.view_models.SharedViewModel
+import com.example.jetpackcompose.room_db.PizzaEntity
+import com.example.jetpackcompose.utilities.STATICS
 import kotlinx.coroutines.delay
 
 @Composable
-fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostController) {
+fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostController, pizzaViewModel: PizzaViewModel) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var item by remember { mutableIntStateOf(1) }
+    var favoriteStatus by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -92,7 +98,7 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = sharedViewModel.pizza!!.price,
+                    text = "${sharedViewModel.pizza!!.price}Rs.",
                     style = TextStyle(
                         fontSize = 22.sp,
                         fontWeight = FontWeight.W600,
@@ -103,7 +109,9 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                     Image(
                         painter = painterResource(id = R.drawable.minus),
                         contentDescription = null,
-                        modifier = Modifier.size(22.dp).clickable { if (item>1) item-- }
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clickable { if (item > 1) item-- }
                     )
                     Text(
                         text = item.toString(),
@@ -118,7 +126,9 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                     Image(
                         painter = painterResource(id = R.drawable.add),
                         contentDescription = null,
-                        modifier = Modifier.size(22.dp).clickable { item++ }
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clickable { item++ }
                     )
                 }
             }
@@ -136,11 +146,40 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                         color = Color.Black
                     )
                 )
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    modifier = Modifier.size(26.dp)
-                )
+                if (!favoriteStatus){
+                    Image(
+                        painter = painterResource(id = R.drawable.unfavorite),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(26.dp)
+                            .clickable {
+                                favoriteStatus = !favoriteStatus
+                                val pizza = PizzaEntity(
+                                    sharedViewModel.pizza!!.id,
+                                    sharedViewModel.pizza!!.image,
+                                    sharedViewModel.pizza!!.name,
+                                    sharedViewModel.pizza!!.description,
+                                    sharedViewModel.pizza!!.price,
+                                    STATICS.FAVORITE
+                                )
+                                pizzaViewModel.insertPizza(pizza)
+                                Toast.makeText(context, "Added in favorite list", Toast.LENGTH_SHORT).show()
+                            }
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        tint = RedColor,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(26.dp)
+                            .clickable {
+                                Toast
+                                    .makeText(context, "Already added in favorite list", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                    )
+                }
             }
             SpacerHeight(10.dp)
             Text(

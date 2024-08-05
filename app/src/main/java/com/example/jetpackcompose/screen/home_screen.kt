@@ -39,7 +39,7 @@ import com.example.jetpackcompose.ui.theme.LightGrayColor
 import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.ui.theme.YellowColor
 import com.example.jetpackcompose.utilities.NavigationRoute
-import com.example.jetpackcompose.utilities.SharedViewModel
+import com.example.jetpackcompose.view_models.SharedViewModel
 
 @Composable
 fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewModel) {
@@ -61,7 +61,10 @@ fun HomeScreen(navController: NavHostController, sharedViewModel: SharedViewMode
 fun PizzaSingleItem(pizza: Pizza, onClick: () -> Unit) {
     val context = LocalContext.current
     Card(
-        modifier = Modifier.width(180.dp).padding(5.dp).clickable { onClick() }, shape = RoundedCornerShape(15.dp)
+        modifier = Modifier
+            .width(180.dp)
+            .padding(5.dp)
+            .clickable { onClick() }, shape = RoundedCornerShape(15.dp)
     ) {
         Box {
             Column(
@@ -78,7 +81,7 @@ fun PizzaSingleItem(pizza: Pizza, onClick: () -> Unit) {
                 )
                 SpacerHeight()
                 Text(
-                    textAlign = TextAlign.Center, text = pizza.price, style = TextStyle(
+                    textAlign = TextAlign.Center, text = "${pizza.price}Rs.", style = TextStyle(
                         fontSize = 14.sp, fontWeight = FontWeight.W500, color = RedColor
                     )
                 )

@@ -1,6 +1,5 @@
 package com.example.jetpackcompose.screen
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,12 +51,14 @@ import com.example.jetpackcompose.data.DrawerItem
 import com.example.jetpackcompose.data.drawerItemList
 import com.example.jetpackcompose.ui.theme.BackgroundColor
 import com.example.jetpackcompose.ui.theme.RedColor
-import com.example.jetpackcompose.utilities.ProfileViewModel
-import com.example.jetpackcompose.utilities.SharedViewModel
+import com.example.jetpackcompose.view_models.PizzaViewModel
+import com.example.jetpackcompose.view_models.ProfileViewModel
+import com.example.jetpackcompose.view_models.SharedViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostController, sharedViewModel: SharedViewModel) {
+fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostController, sharedViewModel: SharedViewModel, pizzaViewModel: PizzaViewModel) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -79,7 +80,12 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
                 }
             })
         },
-        drawerContent = { DrawerContent(profileViewModel) },
+        drawerContent = { DrawerContent(profileViewModel, onItemSelected = {
+            selectedIndex = it
+            scope.launch {
+                scaffoldState.drawerState.close()
+            }
+        }) },
         bottomBar = {
             BottomNavigation(
                 backgroundColor = Color.White,
@@ -100,8 +106,8 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
             it
             when (selectedIndex) {
                 0 -> HomeScreen(navController, sharedViewModel)
-                1 -> CartScreen()
-                2 -> FavoriteScreen()
+                1 -> CartScreen(sharedViewModel)
+                2 -> FavoriteScreen(pizzaViewModel)
                 3 -> ProfileScreen(profileViewModel)
             }
         })
@@ -138,7 +144,7 @@ fun CustomTopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DrawerContent(viewModel: ProfileViewModel) {
+fun DrawerContent(viewModel: ProfileViewModel, onItemSelected: (Int) -> Unit) {
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     Column(modifier = Modifier.fillMaxSize()) {
@@ -178,23 +184,23 @@ fun DrawerContent(viewModel: ProfileViewModel) {
         SpacerHeight(15.dp)
         LazyColumn {
             items(drawerItemList) {
-                DrawerSingleItem(it)
+                DrawerSingleItem(it, onItemSelected = { onItemSelected->
+                    onItemSelected(onItemSelected)
+                })
             }
         }
     }
 }
 
 @Composable
-fun DrawerSingleItem(drawerItem: DrawerItem) {
+fun DrawerSingleItem(drawerItem: DrawerItem, onItemSelected: (Int) -> Unit) {
     val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp)
             .clickable {
-                Toast
-                    .makeText(context, "${drawerItem.title} clicked", Toast.LENGTH_SHORT)
-                    .show()
+                onItemSelected(drawerItem.index)
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
@@ -202,7 +208,7 @@ fun DrawerSingleItem(drawerItem: DrawerItem) {
         Icon(
             imageVector = drawerItem.icon,
             contentDescription = null,
-            modifier = Modifier.size(35.dp)
+            modifier = Modifier.size(30.dp)
         )
         SpacerWidth()
         Text(
