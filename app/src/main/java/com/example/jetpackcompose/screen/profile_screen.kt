@@ -1,8 +1,10 @@
 package com.example.jetpackcompose.screen
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,15 +30,21 @@ import androidx.compose.ui.unit.sp
 import com.example.jetpackcompose.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.window.Dialog
 import coil.compose.rememberAsyncImagePainter
 import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.view_models.ProfileViewModel
@@ -44,14 +52,17 @@ import com.example.jetpackcompose.view_models.ProfileViewModel
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel) {
     val scrollState = rememberScrollState()
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val galleryLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            imageUri = uri
+    var picTypeStatus by remember { mutableStateOf(true) }
+    var profilePicUri by remember { mutableStateOf<Uri?>(null) }
+    var profilePicBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            profilePicUri = uri
+        }
+    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) {
+            profilePicBitmap = it
         }
 
     var isEditing by remember { mutableStateOf(false) }
-    // Observe the state from the view model
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     val bio by viewModel.bio.collectAsState()
@@ -59,6 +70,17 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
     var nameInput by remember { mutableStateOf(name) }
     var emailInput by remember { mutableStateOf(email) }
     var bioInput by remember { mutableStateOf(bio) }
+
+    var showDialogStatus by remember { mutableStateOf(false) }
+    MyDialog(showDialogStatus, onDialogDismiss = {
+        showDialogStatus = false
+    }, onCameraClick = {
+        cameraLauncher.launch()
+        picTypeStatus = false
+    }, onGalleryClick = {
+        galleryLauncher.launch("image/*") // Open gallery
+        picTypeStatus = true
+    })
 
     Column(
         modifier = Modifier
@@ -76,18 +98,33 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
             // Profile picture
             Column(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Image(painter = imageUri?.let { rememberAsyncImagePainter(it) } ?: painterResource(
-                    id = R.drawable.profile_pic
-                ),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(170.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .clickable {
-                            galleryLauncher.launch("image/*") // Open gallery
-                        })
+                if (picTypeStatus) {
+                    Image(painter = profilePicUri?.let { rememberAsyncImagePainter(it) }
+                        ?: painterResource(
+                            id = R.drawable.profile_pic
+                        ),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(170.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .clickable {
+                                showDialogStatus = true
+                            })
+                } else {
+                    Image(bitmap = (profilePicBitmap?.let { it.asImageBitmap() } ?: painterResource(
+                        id = R.drawable.profile_pic) as ImageBitmap),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(170.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .clickable {
+                                showDialogStatus = true
+                            })
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 // Name
                 if (isEditing) {
@@ -205,4 +242,47 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
             Text(text = if (isEditing) "Save" else "Edit Profile")
         }
     }
+}
+
+@Composable
+fun MyDialog(showDialogStatus: Boolean, onDialogDismiss: () -> Unit, onCameraClick: () -> Unit, onGalleryClick: () -> Unit) {
+    if (showDialogStatus)
+        Dialog(onDismissRequest = { onDialogDismiss() }) {
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row {
+                        Image(
+                            painter = painterResource(id = R.drawable.camera),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                                .weight(0.5f).clickable {
+                                    onCameraClick()
+                                    onDialogDismiss()
+                                }
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.gallery),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                                .weight(0.5f)
+                                .clickable {
+                                    onGalleryClick
+                                    onDialogDismiss()
+                                }
+                        )
+                    }
+                }
+            }
+        }
 }

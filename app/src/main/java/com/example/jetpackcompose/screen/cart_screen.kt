@@ -37,8 +37,6 @@ import androidx.compose.ui.unit.sp
 import com.example.jetpackcompose.R
 import com.example.jetpackcompose.common.SpacerHeight
 import com.example.jetpackcompose.common.SpacerWidth
-import com.example.jetpackcompose.data.Pizza
-import com.example.jetpackcompose.data.pizzaList
 import com.example.jetpackcompose.ui.theme.DarkBlackColor
 import com.example.jetpackcompose.ui.theme.RedColor
 import androidx.compose.foundation.*
@@ -47,103 +45,162 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import com.example.jetpackcompose.room_db.PizzaEntity
+import com.example.jetpackcompose.utilities.STATICS
+import com.example.jetpackcompose.view_models.PizzaViewModel
 import com.example.jetpackcompose.view_models.SharedViewModel
 
 @ExperimentalMaterialApi
 @Composable
-fun CartScreen(sharedViewModel: SharedViewModel) {
-    val pizzaList = pizzaList.toMutableStateList()
+fun CartScreen(sharedViewModel: SharedViewModel, pizzaViewModel: PizzaViewModel) {
+    val pizzaList by pizzaViewModel.cartItems.collectAsState()
+    val isLoading by pizzaViewModel.isLoading.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier.padding(horizontal = 5.dp),
-        contentPadding = PaddingValues(bottom = 65.dp)
-    ) {
-        itemsIndexed(items = pizzaList, key = { _, listItem ->
-            listItem.hashCode()
-        })
-        { _, item ->
-            val state = rememberDismissState(
-                confirmStateChange = {
-                    if (it == DismissValue.DismissedToStart) {
-                        pizzaList.remove(item)
-                        val amount = item.price * item.item
-                        sharedViewModel.addAmount(sharedViewModel.totalAmount-amount)
-                    }
-                    true
-                }
-            )
-            SwipeToDismiss(state = state, background = {
-                val color = when (state.dismissDirection) {
-                    DismissDirection.StartToEnd -> Color.Transparent
-                    DismissDirection.EndToStart -> Color.Transparent
-                    null -> Color.Transparent
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = color)
-                        .padding(15.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = Color.Black,
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .size(40.dp)
-                    )
-                }
-            }, dismissContent = {
-                PizzaCartSingleItem(pizza = item, addClick = { amount ->
-                    val totalAmount = sharedViewModel.totalAmount
-                    sharedViewModel.addAmount(totalAmount + amount)
-                }, subtractClick = { amount ->
-                    val totalAmount = sharedViewModel.totalAmount
-                    sharedViewModel.addAmount(totalAmount - amount)
-                }
-                )
-            }, directions = setOf(DismissDirection.EndToStart))
+    var totalAmount by remember { mutableIntStateOf(0) }
+    totalAmount = pizzaList.sumOf { pizza ->
+        pizza.price * pizza.items
+    }
+    sharedViewModel.addAmount(totalAmount)
+
+    when {
+        isLoading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         }
 
-        item {
-            Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-                SpacerHeight(20.dp)
-                DottedLine(color = Color.Black)
-                SpacerHeight(20.dp)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        textAlign = TextAlign.Start, text = "Total", style = TextStyle(
-                            fontSize = 16.sp, fontWeight = FontWeight.W500, color = DarkBlackColor
-                        )
-                    )
-                    Text(
-                        textAlign = TextAlign.Start,
-                        text = "${sharedViewModel.totalAmount}Rs",
-                        style = TextStyle(
-                            fontSize = 16.sp, fontWeight = FontWeight.W500, color = DarkBlackColor
-                        )
-                    )
-                }
-                SpacerHeight(20.dp)
-                DottedLine(color = Color.Black)
-                SpacerHeight(25.dp)
-                Button(
-                    onClick = {
+        pizzaList.isNullOrEmpty() -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(id = R.drawable.no_data),
+                    contentDescription = null,
+                    modifier = Modifier.size(350.dp)
+                )
+            }
+        }
 
-                    }, modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 30.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = RedColor, // Background color
-                        contentColor = Color.White   // Text color
+        else -> {
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 5.dp),
+                contentPadding = PaddingValues(bottom = 65.dp)
+            ) {
+                itemsIndexed(items = pizzaList, key = { _, listItem ->
+                    listItem.hashCode()
+                })
+                { _, item ->
+                    val state = rememberDismissState(
+                        confirmStateChange = {
+                            if (it == DismissValue.DismissedToStart) {
+                                pizzaViewModel.deletePizzaByIdStatus(item.pizzaId, STATICS.CART)
+                                val amount = item.price * item.items
+                                sharedViewModel.addAmount(sharedViewModel.totalAmount - amount)
+                            }
+                            true
+                        }
                     )
-                ) {
-                    Text(text = "Proceed to checkout")
+                    SwipeToDismiss(state = state, background = {
+                        val color = when (state.dismissDirection) {
+                            DismissDirection.StartToEnd -> Color.Transparent
+                            DismissDirection.EndToStart -> Color.Transparent
+                            null -> Color.Transparent
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color = color)
+                                .padding(15.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.Black,
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .size(40.dp)
+                            )
+                        }
+                    }, dismissContent = {
+                        PizzaCartSingleItem(pizza = item, addClick = {
+                            val totalAmount = sharedViewModel.totalAmount
+                            sharedViewModel.addAmount(totalAmount + item.price)
+                            val pizza = PizzaEntity(
+                                item.pizzaId,
+                                item.image,
+                                item.name,
+                                item.description,
+                                item.price,
+                                STATICS.CART,
+                                item.items
+                            )
+                            pizzaViewModel.updatePizza(pizza)
+                        }, subtractClick = {
+                            val totalAmount = sharedViewModel.totalAmount
+                            sharedViewModel.addAmount(totalAmount - item.price)
+                            val pizza = PizzaEntity(
+                                item.pizzaId,
+                                item.image,
+                                item.name,
+                                item.description,
+                                item.price,
+                                STATICS.CART,
+                                item.items
+                            )
+                            pizzaViewModel.updatePizza(pizza)
+                        }
+                        )
+                    }, directions = setOf(DismissDirection.EndToStart))
+                }
+
+                item {
+                    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+                        SpacerHeight(20.dp)
+                        DottedLine(color = Color.Black)
+                        SpacerHeight(20.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                textAlign = TextAlign.Start, text = "Total", style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.W500,
+                                    color = DarkBlackColor
+                                )
+                            )
+                            Text(
+                                textAlign = TextAlign.Start,
+                                text = "${sharedViewModel.totalAmount}Rs",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.W500,
+                                    color = DarkBlackColor
+                                )
+                            )
+                        }
+                        SpacerHeight(20.dp)
+                        DottedLine(color = Color.Black)
+                        SpacerHeight(25.dp)
+                        Button(
+                            onClick = {
+
+                            }, modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 30.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = RedColor, // Background color
+                                contentColor = Color.White   // Text color
+                            )
+                        ) {
+                            Text(text = "Proceed to checkout")
+                        }
+                    }
                 }
             }
         }
@@ -151,11 +208,10 @@ fun CartScreen(sharedViewModel: SharedViewModel) {
 }
 
 @Composable
-fun PizzaCartSingleItem(pizza: Pizza, addClick: (Int) -> Unit, subtractClick: (Int) -> Unit) {
-    var items by rememberSaveable { mutableIntStateOf(pizza.item) }
+fun PizzaCartSingleItem(pizza: PizzaEntity, addClick:() -> Unit, subtractClick: () -> Unit) {
+    var items by rememberSaveable { mutableIntStateOf(pizza.items) }
     Card(
-        modifier = Modifier
-            .padding(horizontal = 5.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 5.dp, vertical = 8.dp),
         shape = RoundedCornerShape(15.dp)
     ) {
         Row(
@@ -201,8 +257,8 @@ fun PizzaCartSingleItem(pizza: Pizza, addClick: (Int) -> Unit, subtractClick: (I
                             .clickable {
                                 if (items > 1) {
                                     items--
-                                    pizza.item--
-                                    subtractClick(pizza.price)
+                                    pizza.items--
+                                    subtractClick()
                                 }
                             })
                     androidx.compose.material.Text(
@@ -219,8 +275,8 @@ fun PizzaCartSingleItem(pizza: Pizza, addClick: (Int) -> Unit, subtractClick: (I
                             .size(24.dp)
                             .clickable {
                                 items++
-                                pizza.item++
-                                addClick(pizza.price)
+                                pizza.items++
+                                addClick()
                             })
                 }
             }

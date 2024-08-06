@@ -61,11 +61,16 @@ import com.example.jetpackcompose.utilities.STATICS
 import kotlinx.coroutines.delay
 
 @Composable
-fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostController, pizzaViewModel: PizzaViewModel) {
+fun PizzaDetailsScreen(
+    sharedViewModel: SharedViewModel,
+    navController: NavHostController,
+    pizzaViewModel: PizzaViewModel
+) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-    var item by remember { mutableIntStateOf(1) }
+    var cartItem by remember { mutableIntStateOf(1) }
     var favoriteStatus by remember { mutableStateOf(false) }
+    var addToCartStatus by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -111,24 +116,24 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                         contentDescription = null,
                         modifier = Modifier
                             .size(22.dp)
-                            .clickable { if (item > 1) item-- }
+                            .clickable { if (cartItem > 1) cartItem-- }
                     )
                     Text(
-                        text = item.toString(),
+                        text = cartItem.toString(),
                         style = TextStyle(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.W600,
                             color = Color.Black,
                             textAlign = TextAlign.Center
                         ),
-                        modifier = Modifier.width(40.dp)
+                        modifier = Modifier.width(35.dp)
                     )
                     Image(
                         painter = painterResource(id = R.drawable.add),
                         contentDescription = null,
                         modifier = Modifier
                             .size(22.dp)
-                            .clickable { item++ }
+                            .clickable { cartItem++ }
                     )
                 }
             }
@@ -146,7 +151,7 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                         color = Color.Black
                     )
                 )
-                if (!favoriteStatus){
+                if (!favoriteStatus) {
                     Image(
                         painter = painterResource(id = R.drawable.unfavorite),
                         contentDescription = null,
@@ -160,10 +165,17 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                                     sharedViewModel.pizza!!.name,
                                     sharedViewModel.pizza!!.description,
                                     sharedViewModel.pizza!!.price,
-                                    STATICS.FAVORITE
+                                    STATICS.FAVORITE,
+                                    1
                                 )
                                 pizzaViewModel.insertPizza(pizza)
-                                Toast.makeText(context, "Added in favorite list", Toast.LENGTH_SHORT).show()
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Added in favorite list",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    .show()
                             }
                     )
                 } else {
@@ -175,7 +187,11 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                             .size(26.dp)
                             .clickable {
                                 Toast
-                                    .makeText(context, "Already added in favorite list", Toast.LENGTH_SHORT)
+                                    .makeText(
+                                        context,
+                                        "Already added in favorite list",
+                                        Toast.LENGTH_SHORT
+                                    )
                                     .show()
                             }
                     )
@@ -205,13 +221,28 @@ fun PizzaDetailsScreen(sharedViewModel: SharedViewModel, navController: NavHostC
                     PizzaSingleItem(pizza = item, onClick = {
                         sharedViewModel.addPizza(item)
                         navController.navigate(NavigationRoute.PIZZA_DETAILS_SCREEN)
-                    })
+                    }, addToCart = {})
                 }
             }
         }
         Button(
             onClick = {
-
+                if (!addToCartStatus) {
+                    addToCartStatus = !addToCartStatus
+                    val pizza = PizzaEntity(
+                        sharedViewModel.pizza!!.id,
+                        sharedViewModel.pizza!!.image,
+                        sharedViewModel.pizza!!.name,
+                        sharedViewModel.pizza!!.description,
+                        sharedViewModel.pizza!!.price,
+                        STATICS.CART,
+                        cartItem
+                    )
+                    pizzaViewModel.insertPizza(pizza)
+                    Toast.makeText(context, "Added in cart list", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Already added in cart list", Toast.LENGTH_SHORT).show()
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()

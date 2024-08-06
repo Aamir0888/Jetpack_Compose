@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -57,47 +59,70 @@ import com.example.jetpackcompose.view_models.PizzaViewModel
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun FavoriteScreen(pizzaViewModel: PizzaViewModel) {
-    val pizzaList = pizzaViewModel.favoriteItems.collectAsState().value
-    LazyColumn(
-        modifier = Modifier.padding(horizontal = 5.dp),
-        contentPadding = PaddingValues(bottom = 65.dp)
-    ){
-        itemsIndexed(items = pizzaList, key = { _, listItem ->
-            listItem.hashCode()
-        })
-        { _, item ->
-            val state = rememberDismissState(
-                confirmStateChange = {
-                    if (it == DismissValue.DismissedToStart) {
-                        pizzaViewModel.deletePizzaByIdStatus(item.pizzaId, STATICS.FAVORITE)
-                    }
-                    true
-                }
-            )
-            SwipeToDismiss(state = state, background = {
-                val color = when (state.dismissDirection) {
-                    DismissDirection.StartToEnd -> Color.Transparent
-                    DismissDirection.EndToStart -> Color.Transparent
-                    null -> Color.Transparent
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = color)
-                        .padding(15.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = Color.Black,
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .size(40.dp)
+    val pizzaList by pizzaViewModel.favoriteItems.collectAsState()
+    val isLoading by pizzaViewModel.isLoading.collectAsState()
+
+    when {
+        isLoading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        pizzaList.isNullOrEmpty() -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(id = R.drawable.no_data),
+                    contentDescription = null,
+                    modifier = Modifier.size(350.dp)
+                )
+            }
+        }
+        else -> {
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 5.dp),
+                contentPadding = PaddingValues(bottom = 65.dp)
+            ) {
+                itemsIndexed(items = pizzaList, key = { _, listItem ->
+                    listItem.hashCode()
+                })
+                { _, item ->
+                    val state = rememberDismissState(
+                        confirmStateChange = {
+                            if (it == DismissValue.DismissedToStart) {
+                                pizzaViewModel.deletePizzaByIdStatus(item.pizzaId, STATICS.FAVORITE)
+                            }
+                            true
+                        }
                     )
+                    SwipeToDismiss(state = state, background = {
+                        val color = when (state.dismissDirection) {
+                            DismissDirection.StartToEnd -> Color.Transparent
+                            DismissDirection.EndToStart -> Color.Transparent
+                            null -> Color.Transparent
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color = color)
+                                .padding(15.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.Black,
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .size(40.dp)
+                            )
+                        }
+                    }, dismissContent = {
+                        PizzaFavoriteSingleItem(pizza = item)
+                    }, directions = setOf(DismissDirection.EndToStart))
                 }
-            }, dismissContent = {
-                PizzaFavoriteSingleItem(pizza = item)
-            }, directions = setOf(DismissDirection.EndToStart))
+            }
         }
     }
 }

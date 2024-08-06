@@ -3,6 +3,8 @@ package com.example.jetpackcompose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -40,12 +42,6 @@ class MainActivity : ComponentActivity() {
             val pizzaDao = PizzaDatabase.getDatabase(this).pizzaDao()
             pizzaViewModel = ViewModelProvider(this, PizzaViewModelFactory(pizzaDao))[PizzaViewModel::class.java]
 
-            var totalAmount by remember { mutableIntStateOf(0) }
-            totalAmount = pizzaList.sumOf { pizza ->
-                pizza.price * pizza.item
-            }
-            sharedViewModel.addAmount(totalAmount)
-
             val navController = rememberNavController()
             NavHost(navController = navController,
                 startDestination = NavigationRoute.DASHBOARD_SCREEN,
@@ -66,13 +62,13 @@ class MainActivity : ComponentActivity() {
                         DashboardScreen(profileViewModel, navController, sharedViewModel, pizzaViewModel)
                     }
                     composable(NavigationRoute.HOME_SCREEN) {
-                        HomeScreen(navController, sharedViewModel)
+                        HomeScreen(navController, sharedViewModel, pizzaViewModel)
                     }
                     composable(NavigationRoute.PIZZA_DETAILS_SCREEN) {
                         PizzaDetailsScreen(sharedViewModel, navController, pizzaViewModel)
                     }
                     composable(NavigationRoute.CART_SCREEN) {
-                        CartScreen(sharedViewModel)
+                        CartScreen(sharedViewModel, pizzaViewModel)
                     }
                     composable(NavigationRoute.FAVORITE_SCREEN) {
                         FavoriteScreen(pizzaViewModel)

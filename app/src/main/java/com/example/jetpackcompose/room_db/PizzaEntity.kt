@@ -10,5 +10,6 @@ data class PizzaEntity(
     val name: String,
     val description: String,
     val price: Int,
-    val status: String
+    val status: String,
+    var items: Int = 1
 )

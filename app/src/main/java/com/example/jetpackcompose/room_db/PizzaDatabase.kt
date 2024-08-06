@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 
-@Database(entities = [PizzaEntity::class], version = 1, exportSchema = false)
+@Database(entities = [PizzaEntity::class], version = 2, exportSchema = false)
 abstract class PizzaDatabase: RoomDatabase() {
     abstract fun pizzaDao(): PizzaDao
 

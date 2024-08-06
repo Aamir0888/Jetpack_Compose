@@ -105,8 +105,8 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
         content = {
             it
             when (selectedIndex) {
-                0 -> HomeScreen(navController, sharedViewModel)
-                1 -> CartScreen(sharedViewModel)
+                0 -> HomeScreen(navController, sharedViewModel, pizzaViewModel)
+                1 -> CartScreen(sharedViewModel, pizzaViewModel)
                 2 -> FavoriteScreen(pizzaViewModel)
                 3 -> ProfileScreen(profileViewModel)
             }
