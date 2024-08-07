@@ -57,7 +57,6 @@ import com.example.jetpackcompose.view_models.SharedViewModel
 @Composable
 fun CartScreen(sharedViewModel: SharedViewModel, pizzaViewModel: PizzaViewModel) {
     val pizzaList by pizzaViewModel.cartItems.collectAsState()
-    val isLoading by pizzaViewModel.isLoading.collectAsState()
 
     var totalAmount by remember { mutableIntStateOf(0) }
     totalAmount = pizzaList.sumOf { pizza ->
@@ -65,141 +64,128 @@ fun CartScreen(sharedViewModel: SharedViewModel, pizzaViewModel: PizzaViewModel)
     }
     sharedViewModel.addAmount(totalAmount)
 
-    when {
-        isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+    if (pizzaList.isNullOrEmpty()){
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = R.drawable.no_data),
+                contentDescription = null,
+                modifier = Modifier.size(350.dp)
+            )
         }
-
-        pizzaList.isNullOrEmpty() -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Image(
-                    painter = painterResource(id = R.drawable.no_data),
-                    contentDescription = null,
-                    modifier = Modifier.size(350.dp)
+    } else {
+        LazyColumn(
+            modifier = Modifier.padding(horizontal = 5.dp),
+            contentPadding = PaddingValues(bottom = 65.dp)
+        ) {
+            itemsIndexed(items = pizzaList, key = { _, listItem ->
+                listItem.hashCode()
+            })
+            { _, item ->
+                val state = rememberDismissState(
+                    confirmStateChange = {
+                        if (it == DismissValue.DismissedToStart) {
+                            pizzaViewModel.deletePizzaByIdStatus(item.pizzaId, STATICS.CART)
+                            val amount = item.price * item.items
+                            sharedViewModel.addAmount(sharedViewModel.totalAmount - amount)
+                        }
+                        true
+                    }
                 )
-            }
-        }
-
-        else -> {
-            LazyColumn(
-                modifier = Modifier.padding(horizontal = 5.dp),
-                contentPadding = PaddingValues(bottom = 65.dp)
-            ) {
-                itemsIndexed(items = pizzaList, key = { _, listItem ->
-                    listItem.hashCode()
-                })
-                { _, item ->
-                    val state = rememberDismissState(
-                        confirmStateChange = {
-                            if (it == DismissValue.DismissedToStart) {
-                                pizzaViewModel.deletePizzaByIdStatus(item.pizzaId, STATICS.CART)
-                                val amount = item.price * item.items
-                                sharedViewModel.addAmount(sharedViewModel.totalAmount - amount)
-                            }
-                            true
-                        }
-                    )
-                    SwipeToDismiss(state = state, background = {
-                        val color = when (state.dismissDirection) {
-                            DismissDirection.StartToEnd -> Color.Transparent
-                            DismissDirection.EndToStart -> Color.Transparent
-                            null -> Color.Transparent
-                        }
-                        Box(
+                SwipeToDismiss(state = state, background = {
+                    val color = when (state.dismissDirection) {
+                        DismissDirection.StartToEnd -> Color.Transparent
+                        DismissDirection.EndToStart -> Color.Transparent
+                        null -> Color.Transparent
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color = color)
+                            .padding(15.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Color.Black,
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(color = color)
-                                .padding(15.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .size(40.dp)
-                            )
-                        }
-                    }, dismissContent = {
-                        PizzaCartSingleItem(pizza = item, addClick = {
-                            val totalAmount = sharedViewModel.totalAmount
-                            sharedViewModel.addAmount(totalAmount + item.price)
-                            val pizza = PizzaEntity(
-                                item.pizzaId,
-                                item.image,
-                                item.name,
-                                item.description,
-                                item.price,
-                                STATICS.CART,
-                                item.items
-                            )
-                            pizzaViewModel.updatePizza(pizza)
-                        }, subtractClick = {
-                            val totalAmount = sharedViewModel.totalAmount
-                            sharedViewModel.addAmount(totalAmount - item.price)
-                            val pizza = PizzaEntity(
-                                item.pizzaId,
-                                item.image,
-                                item.name,
-                                item.description,
-                                item.price,
-                                STATICS.CART,
-                                item.items
-                            )
-                            pizzaViewModel.updatePizza(pizza)
-                        }
+                                .align(Alignment.CenterEnd)
+                                .size(40.dp)
                         )
-                    }, directions = setOf(DismissDirection.EndToStart))
-                }
+                    }
+                }, dismissContent = {
+                    PizzaCartSingleItem(pizza = item, addClick = {
+                        val totalAmount = sharedViewModel.totalAmount
+                        sharedViewModel.addAmount(totalAmount + item.price)
+                        val pizza = PizzaEntity(
+                            item.pizzaId,
+                            item.image,
+                            item.name,
+                            item.description,
+                            item.price,
+                            STATICS.CART,
+                            item.items
+                        )
+                        pizzaViewModel.updatePizza(pizza)
+                    }, subtractClick = {
+                        val totalAmount = sharedViewModel.totalAmount
+                        sharedViewModel.addAmount(totalAmount - item.price)
+                        val pizza = PizzaEntity(
+                            item.pizzaId,
+                            item.image,
+                            item.name,
+                            item.description,
+                            item.price,
+                            STATICS.CART,
+                            item.items
+                        )
+                        pizzaViewModel.updatePizza(pizza)
+                    }
+                    )
+                }, directions = setOf(DismissDirection.EndToStart))
+            }
 
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
-                        SpacerHeight(20.dp)
-                        DottedLine(color = Color.Black)
-                        SpacerHeight(20.dp)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                textAlign = TextAlign.Start, text = "Total", style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.W500,
-                                    color = DarkBlackColor
-                                )
+            item {
+                Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+                    SpacerHeight(20.dp)
+                    DottedLine(color = Color.Black)
+                    SpacerHeight(20.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            textAlign = TextAlign.Start, text = "Total", style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W500,
+                                color = DarkBlackColor
                             )
-                            Text(
-                                textAlign = TextAlign.Start,
-                                text = "${sharedViewModel.totalAmount}Rs",
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.W500,
-                                    color = DarkBlackColor
-                                )
+                        )
+                        Text(
+                            textAlign = TextAlign.Start,
+                            text = "${sharedViewModel.totalAmount}Rs",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W500,
+                                color = DarkBlackColor
                             )
-                        }
-                        SpacerHeight(20.dp)
-                        DottedLine(color = Color.Black)
-                        SpacerHeight(25.dp)
-                        Button(
-                            onClick = {
+                        )
+                    }
+                    SpacerHeight(20.dp)
+                    DottedLine(color = Color.Black)
+                    SpacerHeight(25.dp)
+                    Button(
+                        onClick = {
 
-                            }, modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 30.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = RedColor, // Background color
-                                contentColor = Color.White   // Text color
-                            )
-                        ) {
-                            Text(text = "Proceed to checkout")
-                        }
+                        }, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 30.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = RedColor, // Background color
+                            contentColor = Color.White   // Text color
+                        )
+                    ) {
+                        Text(text = "Proceed to checkout")
                     }
                 }
             }
@@ -208,7 +194,7 @@ fun CartScreen(sharedViewModel: SharedViewModel, pizzaViewModel: PizzaViewModel)
 }
 
 @Composable
-fun PizzaCartSingleItem(pizza: PizzaEntity, addClick:() -> Unit, subtractClick: () -> Unit) {
+fun PizzaCartSingleItem(pizza: PizzaEntity, addClick: () -> Unit, subtractClick: () -> Unit) {
     var items by rememberSaveable { mutableIntStateOf(pizza.items) }
     Card(
         modifier = Modifier.padding(horizontal = 5.dp, vertical = 8.dp),

@@ -47,20 +47,35 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.window.Dialog
 import coil.compose.rememberAsyncImagePainter
 import com.example.jetpackcompose.ui.theme.RedColor
+import com.example.jetpackcompose.utilities.STATICS
 import com.example.jetpackcompose.view_models.ProfileViewModel
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel) {
     val scrollState = rememberScrollState()
-    var picTypeStatus by remember { mutableStateOf(true) }
+    var type by remember { mutableStateOf(STATICS.GALLERY) }
     var profilePicUri by remember { mutableStateOf<Uri?>(null) }
     var profilePicBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             profilePicUri = uri
         }
-    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) {
+    val cameraLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicturePreview()) {
             profilePicBitmap = it
         }
+
+    var showDialogStatus by remember { mutableStateOf(false) }
+    MyDialog(showDialogStatus = showDialogStatus,
+        onDismiss = {
+            showDialogStatus = false
+        }, onCameraClick = {
+            cameraLauncher.launch()
+            type = STATICS.CAMERA
+        }, onGalleryClick = {
+            type = STATICS.GALLERY
+            galleryLauncher.launch("image/*")
+        })
 
     var isEditing by remember { mutableStateOf(false) }
     val name by viewModel.name.collectAsState()
@@ -70,17 +85,6 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
     var nameInput by remember { mutableStateOf(name) }
     var emailInput by remember { mutableStateOf(email) }
     var bioInput by remember { mutableStateOf(bio) }
-
-    var showDialogStatus by remember { mutableStateOf(false) }
-    MyDialog(showDialogStatus, onDialogDismiss = {
-        showDialogStatus = false
-    }, onCameraClick = {
-        cameraLauncher.launch()
-        picTypeStatus = false
-    }, onGalleryClick = {
-        galleryLauncher.launch("image/*") // Open gallery
-        picTypeStatus = true
-    })
 
     Column(
         modifier = Modifier
@@ -95,10 +99,10 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                 .verticalScroll(scrollState)
                 .weight(1f)
         ) {
-            // Profile picture
             Column(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Spacer(modifier = Modifier.height(16.dp))
-                if (picTypeStatus) {
+                if (type == STATICS.GALLERY){
+                    //  gallery
                     Image(painter = profilePicUri?.let { rememberAsyncImagePainter(it) }
                         ?: painterResource(
                             id = R.drawable.profile_pic
@@ -113,8 +117,9 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                                 showDialogStatus = true
                             })
                 } else {
-                    Image(bitmap = (profilePicBitmap?.let { it.asImageBitmap() } ?: painterResource(
-                        id = R.drawable.profile_pic) as ImageBitmap),
+                    // Camera
+                    Image(painter = profilePicBitmap?.let { rememberAsyncImagePainter(it) }
+                        ?: painterResource(id = R.drawable.profile_pic),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -245,9 +250,9 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
 }
 
 @Composable
-fun MyDialog(showDialogStatus: Boolean, onDialogDismiss: () -> Unit, onCameraClick: () -> Unit, onGalleryClick: () -> Unit) {
-    if (showDialogStatus)
-        Dialog(onDismissRequest = { onDialogDismiss() }) {
+fun MyDialog(showDialogStatus: Boolean, onDismiss:() -> Unit, onCameraClick:() -> Unit, onGalleryClick:() -> Unit) {
+    if (showDialogStatus) {
+        Dialog(onDismissRequest = { onDismiss() }) {
             Surface(
                 shape = RoundedCornerShape(8.dp),
                 color = MaterialTheme.colorScheme.surface,
@@ -265,8 +270,8 @@ fun MyDialog(showDialogStatus: Boolean, onDialogDismiss: () -> Unit, onCameraCli
                                 .fillMaxWidth()
                                 .padding(20.dp)
                                 .weight(0.5f).clickable {
+                                    onDismiss()
                                     onCameraClick()
-                                    onDialogDismiss()
                                 }
                         )
                         Image(
@@ -275,14 +280,14 @@ fun MyDialog(showDialogStatus: Boolean, onDialogDismiss: () -> Unit, onCameraCli
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(20.dp)
-                                .weight(0.5f)
-                                .clickable {
-                                    onGalleryClick
-                                    onDialogDismiss()
+                                .weight(0.5f).clickable {
+                                    onDismiss()
+                                    onGalleryClick()
                                 }
                         )
                     }
                 }
             }
         }
+    }
 }

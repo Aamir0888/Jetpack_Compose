@@ -60,68 +60,56 @@ import com.example.jetpackcompose.view_models.PizzaViewModel
 @Composable
 fun FavoriteScreen(pizzaViewModel: PizzaViewModel) {
     val pizzaList by pizzaViewModel.favoriteItems.collectAsState()
-    val isLoading by pizzaViewModel.isLoading.collectAsState()
 
-    when {
-        isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+    if (pizzaList.isNullOrEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(id = R.drawable.no_data),
+                contentDescription = null,
+                modifier = Modifier.size(350.dp)
+            )
         }
-        pizzaList.isNullOrEmpty() -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Image(
-                    painter = painterResource(id = R.drawable.no_data),
-                    contentDescription = null,
-                    modifier = Modifier.size(350.dp)
+    } else {
+        LazyColumn(
+            modifier = Modifier.padding(horizontal = 5.dp),
+            contentPadding = PaddingValues(bottom = 65.dp)
+        ) {
+            itemsIndexed(items = pizzaList, key = { _, listItem ->
+                listItem.hashCode()
+            })
+            { _, item ->
+                val state = rememberDismissState(
+                    confirmStateChange = {
+                        if (it == DismissValue.DismissedToStart) {
+                            pizzaViewModel.deletePizzaByIdStatus(item.pizzaId, STATICS.FAVORITE)
+                        }
+                        true
+                    }
                 )
-            }
-        }
-        else -> {
-            LazyColumn(
-                modifier = Modifier.padding(horizontal = 5.dp),
-                contentPadding = PaddingValues(bottom = 65.dp)
-            ) {
-                itemsIndexed(items = pizzaList, key = { _, listItem ->
-                    listItem.hashCode()
-                })
-                { _, item ->
-                    val state = rememberDismissState(
-                        confirmStateChange = {
-                            if (it == DismissValue.DismissedToStart) {
-                                pizzaViewModel.deletePizzaByIdStatus(item.pizzaId, STATICS.FAVORITE)
-                            }
-                            true
-                        }
-                    )
-                    SwipeToDismiss(state = state, background = {
-                        val color = when (state.dismissDirection) {
-                            DismissDirection.StartToEnd -> Color.Transparent
-                            DismissDirection.EndToStart -> Color.Transparent
-                            null -> Color.Transparent
-                        }
-                        Box(
+                SwipeToDismiss(state = state, background = {
+                    val color = when (state.dismissDirection) {
+                        DismissDirection.StartToEnd -> Color.Transparent
+                        DismissDirection.EndToStart -> Color.Transparent
+                        null -> Color.Transparent
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color = color)
+                            .padding(15.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Color.Black,
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(color = color)
-                                .padding(15.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .size(40.dp)
-                            )
-                        }
-                    }, dismissContent = {
-                        PizzaFavoriteSingleItem(pizza = item)
-                    }, directions = setOf(DismissDirection.EndToStart))
-                }
+                                .align(Alignment.CenterEnd)
+                                .size(40.dp)
+                        )
+                    }
+                }, dismissContent = {
+                    PizzaFavoriteSingleItem(pizza = item)
+                }, directions = setOf(DismissDirection.EndToStart))
             }
         }
     }
@@ -141,7 +129,7 @@ fun PizzaFavoriteSingleItem(pizza: PizzaEntity) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(pizza.image),
+                painter = painterResource(id = pizza.image),
                 contentDescription = null,
                 modifier = Modifier.size(80.dp)
             )

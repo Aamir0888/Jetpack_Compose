@@ -15,25 +15,14 @@ import kotlinx.coroutines.launch
 class PizzaViewModel(private val pizzaDao: PizzaDao) : ViewModel() {
     val cartItems: StateFlow<List<PizzaEntity>> = getPizzaByStatus(STATICS.CART)
     val favoriteItems: StateFlow<List<PizzaEntity>> = getPizzaByStatus(STATICS.FAVORITE)
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
 
     private fun getPizzaByStatus(status: String): StateFlow<List<PizzaEntity>> {
-        val flow = pizzaDao.getProductsByStatus(status)
+        return pizzaDao.getProductsByStatus(status)
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyList()
             )
-
-        viewModelScope.launch {
-            flow.collect { items ->
-                if (items.isNotEmpty()) {
-                    _isLoading.value = false
-                }
-            }
-        }
-        return flow
     }
 
     fun insertPizza(pizza: PizzaEntity) {

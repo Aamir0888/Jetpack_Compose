@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-parcelize")
     id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -78,4 +79,12 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.room.ktx)
     kapt(libs.androidx.room.compiler)
+
+    //  hilt
+    implementation(libs.hilt.android)
+    kapt(libs.dagger.hilt.compiler)
+
+    //  retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }
