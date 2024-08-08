@@ -1,5 +1,6 @@
 package com.example.jetpackcompose.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,8 +44,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.jetpackcompose.R
+import com.example.jetpackcompose.api.ApiState
+import com.example.jetpackcompose.api_models.response.CommonResponse
+import com.example.jetpackcompose.api_models.response.LoginResponse
 import com.example.jetpackcompose.common.AppIconButton
 import com.example.jetpackcompose.common.SpacerHeight
 import com.example.jetpackcompose.common.SpacerWidth
@@ -51,6 +58,9 @@ import com.example.jetpackcompose.data.DrawerItem
 import com.example.jetpackcompose.data.drawerItemList
 import com.example.jetpackcompose.ui.theme.BackgroundColor
 import com.example.jetpackcompose.ui.theme.RedColor
+import com.example.jetpackcompose.utilities.NavigationRoute
+import com.example.jetpackcompose.utilities.PreferencesHelper
+import com.example.jetpackcompose.view_models.MainViewModel
 import com.example.jetpackcompose.view_models.PizzaViewModel
 import com.example.jetpackcompose.view_models.ProfileViewModel
 import com.example.jetpackcompose.view_models.SharedViewModel
@@ -58,7 +68,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostController, sharedViewModel: SharedViewModel, pizzaViewModel: PizzaViewModel) {
+fun DashboardScreen(navController: NavHostController) {
+    val profileViewModel = hiltViewModel<ProfileViewModel>()
+    val mainViewModel = hiltViewModel<MainViewModel>()
+    val context = LocalContext.current
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -68,6 +81,8 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
         BottomNavItem("Favorite", Icons.Default.Favorite),
         BottomNavItem("Profile", Icons.Default.Person)
     )
+
+    val logoutResponse by mainViewModel.logoutResponse
 
     Scaffold(modifier = Modifier
         .fillMaxSize()
@@ -85,6 +100,8 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
             scope.launch {
                 scaffoldState.drawerState.close()
             }
+        }, onLogoutClick = {
+            mainViewModel.logout(PreferencesHelper.getString(PreferencesHelper.TOKEN)!!, PreferencesHelper.getString(PreferencesHelper.USER_ID)!!)
         }) },
         bottomBar = {
             BottomNavigation(
@@ -102,15 +119,35 @@ fun DashboardScreen(profileViewModel: ProfileViewModel, navController: NavHostCo
                 }
             }
         },
-        content = {
-            it
+        content = { it
             when (selectedIndex) {
-                0 -> HomeScreen(navController, sharedViewModel, pizzaViewModel)
-                1 -> CartScreen(sharedViewModel, pizzaViewModel)
-                2 -> FavoriteScreen(pizzaViewModel)
-                3 -> ProfileScreen(profileViewModel)
+                0 -> HomeScreen(navController)
+                1 -> CartScreen()
+                2 -> FavoriteScreen()
+                3 -> ProfileScreen()
             }
         })
+
+    when (logoutResponse) {
+        is ApiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.CircularProgressIndicator()
+            }
+        }
+        is ApiState.Success -> {
+            val logoutResponse = (logoutResponse as ApiState.Success<CommonResponse>).data
+            Toast.makeText(context, logoutResponse.message, Toast.LENGTH_SHORT).show()
+            PreferencesHelper.setBoolean(PreferencesHelper.IS_LOGIN, false)
+            navController.navigate(NavigationRoute.LOGIN_SCREEN) {
+                popUpTo(NavigationRoute.DASHBOARD_SCREEN) { inclusive = true }
+            }
+        }
+        is ApiState.Error -> {
+            val error = (logoutResponse as ApiState.Error).message
+            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+        }
+        ApiState.Default -> {}
+    }
 }
 
 @Composable
@@ -144,7 +181,7 @@ fun CustomTopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DrawerContent(viewModel: ProfileViewModel, onItemSelected: (Int) -> Unit) {
+fun DrawerContent(viewModel: ProfileViewModel, onItemSelected: (Int) -> Unit, onLogoutClick: () -> Unit) {
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     Column(modifier = Modifier.fillMaxSize()) {
@@ -189,12 +226,34 @@ fun DrawerContent(viewModel: ProfileViewModel, onItemSelected: (Int) -> Unit) {
                 })
             }
         }
+        Spacer(modifier = Modifier.weight(1f))
+        Divider(modifier = Modifier.fillMaxWidth(), color = Color.Gray, thickness = 0.5.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 20.dp)
+                .clickable {
+                    onLogoutClick()
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.logout),
+                contentDescription = null,
+                modifier = Modifier.size(25.dp)
+            )
+            SpacerWidth()
+            Text(
+                text = "Logout",
+                style = TextStyle(color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.W500)
+            )
+        }
     }
 }
 
 @Composable
 fun DrawerSingleItem(drawerItem: DrawerItem, onItemSelected: (Int) -> Unit) {
-    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()

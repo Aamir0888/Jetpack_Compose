@@ -1,9 +1,16 @@
 package com.example.jetpackcompose.di
 
+import android.content.Context
+import com.example.jetpackcompose.room_db.PizzaDao
+import com.example.jetpackcompose.room_db.PizzaDatabase
 import com.example.jetpackcompose.view_models.MainViewModel
+import com.example.jetpackcompose.view_models.PizzaViewModel
+import com.example.jetpackcompose.view_models.ProfileViewModel
+import com.example.jetpackcompose.view_models.SharedViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -40,5 +47,29 @@ class NetworkModule {
     @Provides
     fun provideMainViewModel(apiService: ApiService): MainViewModel{
         return MainViewModel(apiService)
+    }
+
+    @Singleton
+    @Provides
+    fun provideSharedViewModel(): SharedViewModel {
+        return SharedViewModel()
+    }
+
+    @Singleton
+    @Provides
+    fun provideProfileViewModel(): ProfileViewModel {
+        return ProfileViewModel()
+    }
+
+    @Singleton
+    @Provides
+    fun providePizzaDao(@ApplicationContext context: Context): PizzaDao {
+        return PizzaDatabase.getDatabase(context).pizzaDao()
+    }
+
+    @Singleton
+    @Provides
+    fun providePizzaViewModel(pizzaDao: PizzaDao): PizzaViewModel {
+        return PizzaViewModel(pizzaDao)
     }
 }

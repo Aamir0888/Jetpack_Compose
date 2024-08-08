@@ -82,7 +82,8 @@ dependencies {
 
     //  hilt
     implementation(libs.hilt.android)
-    kapt(libs.dagger.hilt.compiler)
+    kapt(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose) // For Compose navigation
 
     //  retrofit
     implementation(libs.retrofit)

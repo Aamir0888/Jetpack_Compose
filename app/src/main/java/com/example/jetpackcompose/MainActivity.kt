@@ -4,11 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.jetpackcompose.room_db.PizzaDatabase
 import com.example.jetpackcompose.screen.CartScreen
 import com.example.jetpackcompose.screen.DashboardScreen
 import com.example.jetpackcompose.screen.FavoriteScreen
@@ -16,32 +14,22 @@ import com.example.jetpackcompose.screen.HomeScreen
 import com.example.jetpackcompose.screen.LoginScreen
 import com.example.jetpackcompose.screen.PizzaDetailsScreen
 import com.example.jetpackcompose.utilities.NavigationRoute
-import com.example.jetpackcompose.view_models.MainViewModel
-import com.example.jetpackcompose.view_models.PizzaViewModel
-import com.example.jetpackcompose.view_models.PizzaViewModelFactory
-import com.example.jetpackcompose.view_models.ProfileViewModel
-import com.example.jetpackcompose.view_models.SharedViewModel
+import com.example.jetpackcompose.utilities.PreferencesHelper
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var profileViewModel: ProfileViewModel
-    private lateinit var sharedViewModel: SharedViewModel
-    private lateinit var pizzaViewModel: PizzaViewModel
-
     @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            profileViewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
-            sharedViewModel = ViewModelProvider(this)[SharedViewModel::class.java]
-
-            val pizzaDao = PizzaDatabase.getDatabase(this).pizzaDao()
-            pizzaViewModel = ViewModelProvider(this, PizzaViewModelFactory(pizzaDao))[PizzaViewModel::class.java]
-
             val navController = rememberNavController()
             NavHost(navController = navController,
-                startDestination = NavigationRoute.LOGIN_SCREEN,
+                startDestination = if (PreferencesHelper.getBoolean(PreferencesHelper.IS_LOGIN)) {
+                    NavigationRoute.DASHBOARD_SCREEN
+                } else {
+                    NavigationRoute.LOGIN_SCREEN
+                },
 //                enterTransition = {
 //                    slideInHorizontally(initialOffsetX = { it }) + fadeIn(animationSpec = tween(700))
 //                },
@@ -56,19 +44,20 @@ class MainActivity : ComponentActivity() {
 //                },
                 builder = {
                     composable(NavigationRoute.DASHBOARD_SCREEN) {
-                        DashboardScreen(profileViewModel, navController, sharedViewModel, pizzaViewModel)
+                        DashboardScreen(navController)
                     }
+
                     composable(NavigationRoute.HOME_SCREEN) {
-                        HomeScreen(navController, sharedViewModel, pizzaViewModel)
+                        HomeScreen(navController)
                     }
                     composable(NavigationRoute.PIZZA_DETAILS_SCREEN) {
-                        PizzaDetailsScreen(sharedViewModel, navController, pizzaViewModel)
+                        PizzaDetailsScreen(navController)
                     }
                     composable(NavigationRoute.CART_SCREEN) {
-                        CartScreen(sharedViewModel, pizzaViewModel)
+                        CartScreen()
                     }
                     composable(NavigationRoute.FAVORITE_SCREEN) {
-                        FavoriteScreen(pizzaViewModel)
+                        FavoriteScreen()
                     }
                     composable(NavigationRoute.LOGIN_SCREEN) {
                         LoginScreen(navController)

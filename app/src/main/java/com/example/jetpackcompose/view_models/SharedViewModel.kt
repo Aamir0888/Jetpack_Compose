@@ -6,8 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.jetpackcompose.data.Pizza
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class SharedViewModel: ViewModel() {
+@HiltViewModel
+class SharedViewModel @Inject constructor(): ViewModel() {
     var pizza by mutableStateOf<Pizza?>(null)
         private set
 

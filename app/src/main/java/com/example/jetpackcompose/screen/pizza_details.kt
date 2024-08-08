@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.jetpackcompose.R
@@ -62,10 +63,10 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun PizzaDetailsScreen(
-    sharedViewModel: SharedViewModel,
-    navController: NavHostController,
-    pizzaViewModel: PizzaViewModel
+    navController: NavHostController
 ) {
+    val pizzaViewModel = hiltViewModel<PizzaViewModel>()
+    val sharedViewModel = hiltViewModel<SharedViewModel>()
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var cartItem by remember { mutableIntStateOf(1) }
@@ -221,7 +222,7 @@ fun PizzaDetailsScreen(
                     PizzaSingleItem(pizza = item, onClick = {
                         sharedViewModel.addPizza(item)
                         navController.navigate(NavigationRoute.PIZZA_DETAILS_SCREEN)
-                    }, addToCart = {})
+                    }, addToCart = {}, onFavoriteClick = {})
                 }
             }
         }

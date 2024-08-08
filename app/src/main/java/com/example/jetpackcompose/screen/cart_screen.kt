@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.jetpackcompose.room_db.PizzaEntity
 import com.example.jetpackcompose.utilities.STATICS
 import com.example.jetpackcompose.view_models.PizzaViewModel
@@ -55,9 +56,10 @@ import com.example.jetpackcompose.view_models.SharedViewModel
 
 @ExperimentalMaterialApi
 @Composable
-fun CartScreen(sharedViewModel: SharedViewModel, pizzaViewModel: PizzaViewModel) {
+fun CartScreen() {
+    val pizzaViewModel = hiltViewModel<PizzaViewModel>()
+    val sharedViewModel = hiltViewModel<SharedViewModel>()
     val pizzaList by pizzaViewModel.cartItems.collectAsState()
-
     var totalAmount by remember { mutableIntStateOf(0) }
     totalAmount = pizzaList.sumOf { pizza ->
         pizza.price * pizza.items

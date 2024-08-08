@@ -23,7 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.jetpackcompose.R
 import com.example.jetpackcompose.api.ApiState
@@ -31,11 +31,13 @@ import com.example.jetpackcompose.api_models.request.LoginModel
 import com.example.jetpackcompose.api_models.response.LoginResponse
 import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.utilities.NavigationRoute
+import com.example.jetpackcompose.utilities.PreferencesHelper
+import com.example.jetpackcompose.utilities.STATICS
 import com.example.jetpackcompose.view_models.MainViewModel
-import javax.inject.Inject
 
 @Composable
-fun LoginScreen(navController: NavHostController, mainViewModel: MainViewModel = viewModel()) {
+fun LoginScreen(navController: NavHostController) {
+    val mainViewModel = hiltViewModel<MainViewModel>()
     val context = LocalContext.current
     val loginState by mainViewModel.loginResponse
 
@@ -49,14 +51,21 @@ fun LoginScreen(navController: NavHostController, mainViewModel: MainViewModel =
                 CircularProgressIndicator()
             }
         }
+
         is ApiState.Success -> {
             val loginResponse = (loginState as ApiState.Success<LoginResponse>).data
             Toast.makeText(context, loginResponse.message, Toast.LENGTH_SHORT).show()
-            navController.navigate(NavigationRoute.DASHBOARD_SCREEN)
+            PreferencesHelper.setBoolean(PreferencesHelper.IS_LOGIN, true)
+            PreferencesHelper.setString(PreferencesHelper.TOKEN, loginResponse.token)
+            PreferencesHelper.setString(PreferencesHelper.USER_ID, loginResponse.result.id.toString())
+            navController.navigate(NavigationRoute.DASHBOARD_SCREEN) {
+                popUpTo(NavigationRoute.LOGIN_SCREEN) { inclusive = true }
+            }
             LaunchedEffect(Unit) {
                 mainViewModel.resetLoginState()
             }
         }
+
         is ApiState.Error -> {
             val error = (loginState as ApiState.Error).message
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
@@ -64,7 +73,8 @@ fun LoginScreen(navController: NavHostController, mainViewModel: MainViewModel =
                 mainViewModel.resetLoginState()
             }
         }
-        ApiState.Default -> { }
+
+        ApiState.Default -> {}
     }
 
     Column(
@@ -128,9 +138,9 @@ fun LoginScreen(navController: NavHostController, mainViewModel: MainViewModel =
                 onClick = {
                     if (username.isEmpty()) {
                         Toast.makeText(context, "Username is empty", Toast.LENGTH_SHORT).show()
-                    } else if (password.isEmpty()){
+                    } else if (password.isEmpty()) {
                         Toast.makeText(context, "Password is empty", Toast.LENGTH_SHORT).show()
-                    } else{
+                    } else {
                         val loginModel = LoginModel(username, password)
                         mainViewModel.login(loginModel)
                     }

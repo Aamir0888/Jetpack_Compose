@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.jetpackcompose.R
 import com.example.jetpackcompose.common.SpacerHeight
 import com.example.jetpackcompose.common.SpacerWidth
@@ -58,7 +59,8 @@ import com.example.jetpackcompose.view_models.PizzaViewModel
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FavoriteScreen(pizzaViewModel: PizzaViewModel) {
+fun FavoriteScreen() {
+    val pizzaViewModel = hiltViewModel<PizzaViewModel>()
     val pizzaList by pizzaViewModel.favoriteItems.collectAsState()
 
     if (pizzaList.isNullOrEmpty()) {

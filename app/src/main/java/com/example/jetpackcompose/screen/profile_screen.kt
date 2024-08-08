@@ -45,13 +45,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.jetpackcompose.ui.theme.RedColor
 import com.example.jetpackcompose.utilities.STATICS
 import com.example.jetpackcompose.view_models.ProfileViewModel
 
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel) {
+fun ProfileScreen() {
+    val viewModel = hiltViewModel<ProfileViewModel>()
     val scrollState = rememberScrollState()
     var type by remember { mutableStateOf(STATICS.GALLERY) }
     var profilePicUri by remember { mutableStateOf<Uri?>(null) }
@@ -269,7 +271,8 @@ fun MyDialog(showDialogStatus: Boolean, onDismiss:() -> Unit, onCameraClick:() -
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(20.dp)
-                                .weight(0.5f).clickable {
+                                .weight(0.5f)
+                                .clickable {
                                     onDismiss()
                                     onCameraClick()
                                 }
@@ -280,7 +283,8 @@ fun MyDialog(showDialogStatus: Boolean, onDismiss:() -> Unit, onCameraClick:() -
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(20.dp)
-                                .weight(0.5f).clickable {
+                                .weight(0.5f)
+                                .clickable {
                                     onDismiss()
                                     onGalleryClick()
                                 }
