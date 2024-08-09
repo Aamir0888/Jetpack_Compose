@@ -1,6 +1,7 @@
 package com.example.jetpackcompose.screen
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -101,6 +102,7 @@ fun DashboardScreen(navController: NavHostController) {
                 scaffoldState.drawerState.close()
             }
         }, onLogoutClick = {
+            Toast.makeText(context, "hi", Toast.LENGTH_SHORT).show()
             mainViewModel.logout(PreferencesHelper.getString(PreferencesHelper.TOKEN)!!, PreferencesHelper.getString(PreferencesHelper.USER_ID)!!)
         }) },
         bottomBar = {
@@ -139,7 +141,8 @@ fun DashboardScreen(navController: NavHostController) {
             Toast.makeText(context, logoutResponse.message, Toast.LENGTH_SHORT).show()
             PreferencesHelper.setBoolean(PreferencesHelper.IS_LOGIN, false)
             navController.navigate(NavigationRoute.LOGIN_SCREEN) {
-                popUpTo(NavigationRoute.DASHBOARD_SCREEN) { inclusive = true }
+                popUpTo(NavigationRoute.DASHBOARD_SCREEN)
+                { inclusive = true }
             }
         }
         is ApiState.Error -> {
@@ -147,6 +150,14 @@ fun DashboardScreen(navController: NavHostController) {
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
         }
         ApiState.Default -> {}
+    }
+
+    // Handle back button press
+    BackHandler(enabled = scaffoldState.drawerState.isOpen) {
+        scope.launch {
+            // Close the drawer if it's open
+            scaffoldState.drawerState.close()
+        }
     }
 }
 

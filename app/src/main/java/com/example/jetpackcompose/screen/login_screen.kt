@@ -51,29 +51,30 @@ fun LoginScreen(navController: NavHostController) {
                 CircularProgressIndicator()
             }
         }
-
         is ApiState.Success -> {
             val loginResponse = (loginState as ApiState.Success<LoginResponse>).data
             Toast.makeText(context, loginResponse.message, Toast.LENGTH_SHORT).show()
             PreferencesHelper.setBoolean(PreferencesHelper.IS_LOGIN, true)
             PreferencesHelper.setString(PreferencesHelper.TOKEN, loginResponse.token)
-            PreferencesHelper.setString(PreferencesHelper.USER_ID, loginResponse.result.id.toString())
+            PreferencesHelper.setString(
+                PreferencesHelper.USER_ID,
+                loginResponse.result.id.toString()
+            )
             navController.navigate(NavigationRoute.DASHBOARD_SCREEN) {
-                popUpTo(NavigationRoute.LOGIN_SCREEN) { inclusive = true }
+                popUpTo(NavigationRoute.LOGIN_SCREEN)
+                { inclusive = true }
             }
-            LaunchedEffect(Unit) {
-                mainViewModel.resetLoginState()
-            }
+//            LaunchedEffect(Unit) {
+//                mainViewModel.resetLoginState()
+//            }
         }
-
         is ApiState.Error -> {
             val error = (loginState as ApiState.Error).message
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-            LaunchedEffect(Unit) {
-                mainViewModel.resetLoginState()
-            }
+//            LaunchedEffect(Unit) {
+//                mainViewModel.resetLoginState()
+//            }
         }
-
         ApiState.Default -> {}
     }
 
@@ -93,7 +94,7 @@ fun LoginScreen(navController: NavHostController) {
             ), modifier = Modifier.padding(top = 22.dp)
         )
 
-        Column(modifier = Modifier.weight(0.5f), verticalArrangement = Arrangement.Center) {
+        Column(modifier = Modifier.weight(0.4f), verticalArrangement = Arrangement.Center) {
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -133,7 +134,11 @@ fun LoginScreen(navController: NavHostController) {
             )
         }
 
-        Column(modifier = Modifier.weight(0.5f), verticalArrangement = Arrangement.Center) {
+        Column(
+            modifier = Modifier.weight(0.6f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Button(
                 onClick = {
                     if (username.isEmpty()) {
@@ -153,6 +158,22 @@ fun LoginScreen(navController: NavHostController) {
                 )
             ) {
                 Text("Login", style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.W500))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(onClick = {
+                navController.navigate(NavigationRoute.FORGOT_PASSWORD_SCREEN)
+            }) {
+                Text("Forgot Password?", color = MaterialTheme.colorScheme.secondary)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(onClick = {
+                navController.navigate(NavigationRoute.SIGN_UP_SCREEN)
+            }) {
+                Text("Sign Up", color = MaterialTheme.colorScheme.secondary)
             }
         }
     }

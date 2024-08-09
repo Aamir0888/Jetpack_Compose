@@ -1,5 +1,7 @@
 package com.example.jetpackcompose.view_models
 
+import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -20,7 +22,7 @@ import kotlin.Exception
 
 @HiltViewModel
 class MainViewModel @Inject constructor(private val apiService: ApiService) : ViewModel() {
-    private val _loginResponse = mutableStateOf<ApiState<LoginResponse>>(ApiState.Default)
+    private val _loginResponse: MutableState<ApiState<LoginResponse>> = mutableStateOf(ApiState.Default)
     val loginResponse: State<ApiState<LoginResponse>> get() = _loginResponse
 
     private val _logoutResponse = mutableStateOf<ApiState<CommonResponse>>(ApiState.Default)
@@ -29,6 +31,7 @@ class MainViewModel @Inject constructor(private val apiService: ApiService) : Vi
     fun logout(authorization: String, id: String) {
         viewModelScope.launch {
             try {
+                Log.d("aamir", "logout: ")
                 _logoutResponse.value = ApiState.Loading
                 val result = apiService.logout(authorization, id)
                 if (result.isSuccessful && result.body() != null && result.code() == 200) {

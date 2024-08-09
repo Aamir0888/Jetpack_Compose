@@ -10,9 +10,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.jetpackcompose.screen.CartScreen
 import com.example.jetpackcompose.screen.DashboardScreen
 import com.example.jetpackcompose.screen.FavoriteScreen
+import com.example.jetpackcompose.screen.ForgotPasswordScreen
 import com.example.jetpackcompose.screen.HomeScreen
 import com.example.jetpackcompose.screen.LoginScreen
+import com.example.jetpackcompose.screen.OtpScreen
 import com.example.jetpackcompose.screen.PizzaDetailsScreen
+import com.example.jetpackcompose.screen.ResetPasswordScreen
+import com.example.jetpackcompose.screen.SignUpScreen
 import com.example.jetpackcompose.utilities.NavigationRoute
 import com.example.jetpackcompose.utilities.PreferencesHelper
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,18 +34,6 @@ class MainActivity : ComponentActivity() {
                 } else {
                     NavigationRoute.LOGIN_SCREEN
                 },
-//                enterTransition = {
-//                    slideInHorizontally(initialOffsetX = { it }) + fadeIn(animationSpec = tween(700))
-//                },
-//                exitTransition = {
-//                    slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(animationSpec = tween(700))
-//                },
-//                popEnterTransition = {
-//                    slideInHorizontally(initialOffsetX = { -it }) + fadeIn(animationSpec = tween(700))
-//                },
-//                popExitTransition = {
-//                    slideOutHorizontally(targetOffsetX = { it }) + fadeOut(animationSpec = tween(700))
-//                },
                 builder = {
                     composable(NavigationRoute.DASHBOARD_SCREEN) {
                         DashboardScreen(navController)
@@ -61,6 +53,18 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(NavigationRoute.LOGIN_SCREEN) {
                         LoginScreen(navController)
+                    }
+                    composable(NavigationRoute.FORGOT_PASSWORD_SCREEN){
+                        ForgotPasswordScreen(navController)
+                    }
+                    composable(NavigationRoute.SIGN_UP_SCREEN){
+                        SignUpScreen(navController)
+                    }
+                    composable(NavigationRoute.OTP_SCREEN){
+                        OtpScreen(navController)
+                    }
+                    composable(NavigationRoute.RESET_PASSWORD_SCREEN){
+                        ResetPasswordScreen(navController)
                     }
                 })
         }
