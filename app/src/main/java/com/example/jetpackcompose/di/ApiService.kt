@@ -13,10 +13,4 @@ import retrofit2.http.Path
 interface ApiService {
     @POST("employee/signIn")
     suspend fun login(@Body loginModel: LoginModel): Response<LoginResponse>
-
-    @GET("employee/signout/{id}")
-    suspend fun logout(
-        @Header("Authorization") authorization: String,
-        @Path("id") id: String
-    ): Response<CommonResponse>
 }
