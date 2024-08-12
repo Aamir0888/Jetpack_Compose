@@ -1,5 +1,6 @@
 package com.example.jetpackcompose.screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -83,8 +84,6 @@ fun DashboardScreen(navController: NavHostController) {
         BottomNavItem("Profile", Icons.Default.Person)
     )
 
-    val logoutResponse by mainViewModel.logoutResponse
-
     Scaffold(modifier = Modifier
         .fillMaxSize()
         .background(BackgroundColor),
@@ -96,15 +95,19 @@ fun DashboardScreen(navController: NavHostController) {
                 }
             })
         },
-        drawerContent = { DrawerContent(profileViewModel, onItemSelected = {
-            selectedIndex = it
-            scope.launch {
-                scaffoldState.drawerState.close()
-            }
-        }, onLogoutClick = {
-            Toast.makeText(context, "hi", Toast.LENGTH_SHORT).show()
-            mainViewModel.logout(PreferencesHelper.getString(PreferencesHelper.TOKEN)!!, PreferencesHelper.getString(PreferencesHelper.USER_ID)!!)
-        }) },
+        drawerContent = {
+            DrawerContent(profileViewModel, onItemSelected = {
+                selectedIndex = it
+                scope.launch {
+                    scaffoldState.drawerState.close()
+                }
+            }, onLogoutClick = {
+                navController.navigate(NavigationRoute.LOGIN_SCREEN){
+                    popUpTo(NavigationRoute.DASHBOARD_SCREEN) { inclusive = true }
+                    PreferencesHelper.setBoolean(PreferencesHelper.IS_LOGIN, false)
+                }
+            })
+        },
         bottomBar = {
             BottomNavigation(
                 backgroundColor = Color.White,
@@ -121,7 +124,8 @@ fun DashboardScreen(navController: NavHostController) {
                 }
             }
         },
-        content = { it
+        content = {
+            it
             when (selectedIndex) {
                 0 -> HomeScreen(navController)
                 1 -> CartScreen()
@@ -129,28 +133,6 @@ fun DashboardScreen(navController: NavHostController) {
                 3 -> ProfileScreen()
             }
         })
-
-    when (logoutResponse) {
-        is ApiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                androidx.compose.material3.CircularProgressIndicator()
-            }
-        }
-        is ApiState.Success -> {
-            val logoutResponse = (logoutResponse as ApiState.Success<CommonResponse>).data
-            Toast.makeText(context, logoutResponse.message, Toast.LENGTH_SHORT).show()
-            PreferencesHelper.setBoolean(PreferencesHelper.IS_LOGIN, false)
-            navController.navigate(NavigationRoute.LOGIN_SCREEN) {
-                popUpTo(NavigationRoute.DASHBOARD_SCREEN)
-                { inclusive = true }
-            }
-        }
-        is ApiState.Error -> {
-            val error = (logoutResponse as ApiState.Error).message
-            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-        }
-        ApiState.Default -> {}
-    }
 
     // Handle back button press
     BackHandler(enabled = scaffoldState.drawerState.isOpen) {
@@ -192,7 +174,11 @@ fun CustomTopBar(onClick: () -> Unit) {
 }
 
 @Composable
-fun DrawerContent(viewModel: ProfileViewModel, onItemSelected: (Int) -> Unit, onLogoutClick: () -> Unit) {
+fun DrawerContent(
+    viewModel: ProfileViewModel,
+    onItemSelected: (Int) -> Unit,
+    onLogoutClick: () -> Unit
+) {
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     Column(modifier = Modifier.fillMaxSize()) {
@@ -232,33 +218,40 @@ fun DrawerContent(viewModel: ProfileViewModel, onItemSelected: (Int) -> Unit, on
         SpacerHeight(15.dp)
         LazyColumn {
             items(drawerItemList) {
-                DrawerSingleItem(it, onItemSelected = { onItemSelected->
+                DrawerSingleItem(it, onItemSelected = { onItemSelected ->
                     onItemSelected(onItemSelected)
                 })
             }
         }
         Spacer(modifier = Modifier.weight(1f))
         Divider(modifier = Modifier.fillMaxWidth(), color = Color.Gray, thickness = 0.5.dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 20.dp)
-                .clickable {
-                    onLogoutClick()
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.logout),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp)
-            )
-            SpacerWidth()
-            Text(
-                text = "Logout",
-                style = TextStyle(color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.W500)
-            )
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onLogoutClick()
+            }) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.logout),
+                    contentDescription = null,
+                    modifier = Modifier.size(25.dp)
+                )
+                SpacerWidth()
+                Text(
+                    text = "Logout",
+                    style = TextStyle(
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.W500
+                    )
+                )
+            }
         }
     }
 }

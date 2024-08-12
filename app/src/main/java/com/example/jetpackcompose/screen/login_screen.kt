@@ -38,8 +38,9 @@ import com.example.jetpackcompose.view_models.MainViewModel
 @Composable
 fun LoginScreen(navController: NavHostController) {
     val mainViewModel = hiltViewModel<MainViewModel>()
+    mainViewModel.resetLoginState()
     val context = LocalContext.current
-    val loginState by mainViewModel.loginResponse
+    val loginState by mainViewModel.loginResponse.collectAsState()
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -55,35 +56,24 @@ fun LoginScreen(navController: NavHostController) {
             val loginResponse = (loginState as ApiState.Success<LoginResponse>).data
             Toast.makeText(context, loginResponse.message, Toast.LENGTH_SHORT).show()
             PreferencesHelper.setBoolean(PreferencesHelper.IS_LOGIN, true)
-            PreferencesHelper.setString(PreferencesHelper.TOKEN, loginResponse.token)
-            PreferencesHelper.setString(
-                PreferencesHelper.USER_ID,
-                loginResponse.result.id.toString()
-            )
             navController.navigate(NavigationRoute.DASHBOARD_SCREEN) {
                 popUpTo(NavigationRoute.LOGIN_SCREEN)
                 { inclusive = true }
             }
-//            LaunchedEffect(Unit) {
-//                mainViewModel.resetLoginState()
-//            }
         }
         is ApiState.Error -> {
             val error = (loginState as ApiState.Error).message
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-//            LaunchedEffect(Unit) {
-//                mainViewModel.resetLoginState()
-//            }
         }
         ApiState.Default -> {}
     }
 
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top,
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
     ) {
         Text(
             text = "Login", style = TextStyle(
@@ -94,7 +84,7 @@ fun LoginScreen(navController: NavHostController) {
             ), modifier = Modifier.padding(top = 22.dp)
         )
 
-        Column(modifier = Modifier.weight(0.4f), verticalArrangement = Arrangement.Center) {
+        Column(modifier = Modifier.padding(top = 20.dp), verticalArrangement = Arrangement.Center) {
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -135,7 +125,7 @@ fun LoginScreen(navController: NavHostController) {
         }
 
         Column(
-            modifier = Modifier.weight(0.6f),
+            modifier = Modifier.padding(top = 20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -166,14 +156,6 @@ fun LoginScreen(navController: NavHostController) {
                 navController.navigate(NavigationRoute.FORGOT_PASSWORD_SCREEN)
             }) {
                 Text("Forgot Password?", color = MaterialTheme.colorScheme.secondary)
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TextButton(onClick = {
-                navController.navigate(NavigationRoute.SIGN_UP_SCREEN)
-            }) {
-                Text("Sign Up", color = MaterialTheme.colorScheme.secondary)
             }
         }
     }

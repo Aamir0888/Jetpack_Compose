@@ -13,10 +13,8 @@ import com.example.jetpackcompose.screen.FavoriteScreen
 import com.example.jetpackcompose.screen.ForgotPasswordScreen
 import com.example.jetpackcompose.screen.HomeScreen
 import com.example.jetpackcompose.screen.LoginScreen
-import com.example.jetpackcompose.screen.OtpScreen
 import com.example.jetpackcompose.screen.PizzaDetailsScreen
 import com.example.jetpackcompose.screen.ResetPasswordScreen
-import com.example.jetpackcompose.screen.SignUpScreen
 import com.example.jetpackcompose.utilities.NavigationRoute
 import com.example.jetpackcompose.utilities.PreferencesHelper
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,12 +54,6 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(NavigationRoute.FORGOT_PASSWORD_SCREEN){
                         ForgotPasswordScreen(navController)
-                    }
-                    composable(NavigationRoute.SIGN_UP_SCREEN){
-                        SignUpScreen(navController)
-                    }
-                    composable(NavigationRoute.OTP_SCREEN){
-                        OtpScreen(navController)
                     }
                     composable(NavigationRoute.RESET_PASSWORD_SCREEN){
                         ResetPasswordScreen(navController)

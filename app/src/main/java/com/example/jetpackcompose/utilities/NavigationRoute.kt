@@ -8,7 +8,5 @@ object NavigationRoute {
     const val FAVORITE_SCREEN = "favorite_screen"
     const val LOGIN_SCREEN = "login_screen"
     const val FORGOT_PASSWORD_SCREEN = "forgot_password_screen"
-    const val SIGN_UP_SCREEN = "sign_up_screen"
-    const val OTP_SCREEN = "otp_screen"
     const val RESET_PASSWORD_SCREEN = "reset_password_screen"
 }

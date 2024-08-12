@@ -9,8 +9,6 @@ object PreferencesHelper {
     const val EMAIL = "EMAIL"
     const val DESCRIPTION = "DESCRIPTION"
     const val IS_LOGIN = "is_login"
-    const val TOKEN = "token"
-    const val USER_ID = "user_id"
 
     fun init(context: Context) {
         preferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)

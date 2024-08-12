@@ -1,19 +1,16 @@
 package com.example.jetpackcompose.view_models
 
-import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackcompose.api.ApiState
 import com.example.jetpackcompose.api_models.request.LoginModel
-import com.example.jetpackcompose.api_models.response.CommonResponse
 import com.example.jetpackcompose.api_models.response.LoginResponse
 import com.example.jetpackcompose.di.ApiService
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import retrofit2.HttpException
@@ -22,39 +19,8 @@ import kotlin.Exception
 
 @HiltViewModel
 class MainViewModel @Inject constructor(private val apiService: ApiService) : ViewModel() {
-    private val _loginResponse: MutableState<ApiState<LoginResponse>> = mutableStateOf(ApiState.Default)
-    val loginResponse: State<ApiState<LoginResponse>> get() = _loginResponse
-
-    private val _logoutResponse = mutableStateOf<ApiState<CommonResponse>>(ApiState.Default)
-    val logoutResponse: State<ApiState<CommonResponse>> get() = _logoutResponse
-
-    fun logout(authorization: String, id: String) {
-        viewModelScope.launch {
-            try {
-                Log.d("aamir", "logout: ")
-                _logoutResponse.value = ApiState.Loading
-                val result = apiService.logout(authorization, id)
-                if (result.isSuccessful && result.body() != null && result.code() == 200) {
-                    _logoutResponse.value = ApiState.Success(result.body()!!)
-                } else if (result.errorBody() != null) {
-                    val errorObj = JSONObject(result.errorBody()!!.charStream().readText())
-                    val error = errorObj.getString("message")
-                    _logoutResponse.value = ApiState.Error(error)
-                } else {
-                    _logoutResponse.value = ApiState.Error("An unknown error occurred")
-                }
-            } catch (e: Exception){
-                val errorMessage = when (e) {
-                    is HttpException -> {
-                        val errorJsonString = e.response()?.errorBody()?.string()
-                        parseErrorMessage(errorJsonString)
-                    }
-                    else -> e.localizedMessage ?: "An unknown error occurred"
-                }
-                _loginResponse.value = ApiState.Error(errorMessage)
-            }
-        }
-    }
+    private val _loginResponse: MutableStateFlow<ApiState<LoginResponse>> = MutableStateFlow(ApiState.Default)
+    val loginResponse: StateFlow<ApiState<LoginResponse>> get() = _loginResponse
 
     fun login(loginModel: LoginModel) {
         viewModelScope.launch {
